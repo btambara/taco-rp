@@ -1,0 +1,26 @@
+services:
+  fxserver:
+    build:
+      dockerfile: ./Dockerfile
+    ports:
+      - "30120:30120"
+      - "30120:30120/udp"
+      - "40120:40120"
+    stdin_open: true
+    tty: true
+    volumes:
+      - server:/FXServer/server
+      - .:/FXServer/server-data
+
+  db:
+    image: mysql
+    # NOTE: use of "mysql_native_password" is not recommended: https://dev.mysql.com/doc/refman/8.0/en/upgrading-from-previous-series.html#upgrade-caching-sha2-password
+    # (this is just an example, not intended to be a production configuration)
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+    ports:
+      - "3306:3306"
+volumes:
+  server:

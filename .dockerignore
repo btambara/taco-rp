@@ -1,0 +1,6 @@
+.git
+Dockerfile
+.dockerignore
+docker-compose-dev.yml
+server-sample.cfg
+.vscode
