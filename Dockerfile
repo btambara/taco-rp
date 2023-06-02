@@ -13,4 +13,4 @@ RUN apk del xz
 RUN chmod u+rx run.sh
 
 WORKDIR /FXServer/server-data
-ENTRYPOINT bash /FXServer/server/run.sh
+ENTRYPOINT ["bash", "/FXServer/server/run.sh"]
