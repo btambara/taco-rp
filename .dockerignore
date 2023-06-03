@@ -1,6 +1,6 @@
 .git
 Dockerfile
 .dockerignore
-docker-compose-dev.yml
+docker-compose.yml
 server-sample.cfg
 .vscode

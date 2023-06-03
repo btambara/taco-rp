@@ -10,7 +10,8 @@ services:
     tty: true
     volumes:
       - server:/FXServer/server
-      - .:/FXServer/server-data
+      - ./resources:/FXServer/server-data/resources
+      - ./server.cfg:/FXServer/server-data/server.cfg
 
   db:
     image: mysql
