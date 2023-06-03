@@ -4,3 +4,5 @@ Dockerfile
 docker-compose.yml
 server-sample.cfg
 .vscode
+README.MD
+.gitignore
