@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+      "baseUrl": ".",
+      "paths": {
+        "*": ["types/*"]
+      },
+      "outDir": "./",
+      "noImplicitAny": false,
+      "module": "ES2020",
+      "target": "ES2021",
+      "allowJs": false,
+      "lib": ["ES2021"],
+      "types": ["@citizenfx/server", "@types/node"],
+      "moduleResolution": "node16",
+      "emitDecoratorMetadata": true,
+      "experimentalDecorators": true,
+      "resolveJsonModule": true,
+      "esModuleInterop": true
+    },
+    "include": ["./**/*"],
+    "exclude": ["**/node_modules", "**/__tests__/*"]
+  }
