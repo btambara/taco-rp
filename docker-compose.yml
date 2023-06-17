@@ -1,7 +1,23 @@
 services:
+  api:
+    build:
+      dockerfile: .docker/api/Dockerfile
+    ports:
+    - "80:80"
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:80"]
+        interval: 30s
+        timeout: 10s
+        retries: 5
+    stdin_open: true
+    tty: true
+
   fxserver:
     build:
-      dockerfile: ./Dockerfile
+      dockerfile: .docker/fivem/Dockerfile
+    depends_on:
+      api:
+        condition: service_healthy
     ports:
       - "30120:30120"
       - "30120:30120/udp"

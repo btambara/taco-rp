@@ -1,4 +1,5 @@
 server.cfg
-cache
+/cache
 .replxx_history
-.vscode
+/.vscode
+/taco-rp-api-env
