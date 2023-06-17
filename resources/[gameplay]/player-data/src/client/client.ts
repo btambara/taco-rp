@@ -1,7 +1,8 @@
 setImmediate(() => {
-    emitNet('helloserver');
-});
-
-onNet('helloclient', (message: string) => {
-    console.log(`The server replied: ${message}`);
+    for (;;) {
+        if (NetworkIsSessionStarted()) {
+            TriggerServerEvent('player-data:playerActivated');
+            break;
+        }
+    }
 });
