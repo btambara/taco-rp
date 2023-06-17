@@ -27,11 +27,11 @@ class FiveMServer {
         return null;
     }
 
-    clientJoining(client: FiveMClient): void {
+    addClient(client: FiveMClient): void {
         this.clients.unshift(client);
     }
 
-    clientDropped(client: FiveMClient) {
+    dropClient(client: FiveMClient) {
         const index = this.clients.indexOf(client, 0);
         if (index != -1) {
             delete this.clients[index];
@@ -92,15 +92,6 @@ on(
                     } else if (!ipIdentifier) {
                         setKickReason('IP not found.');
                     } else {
-                        const fivemClient: FiveMClient = new FiveMClient(
-                            player,
-                            playerName,
-                            steamIdentifier.replace('steam:', ''),
-                            fivemIdentifier.replace('fivem:', ''),
-                            ipIdentifier.replace('ip:', '')
-                        );
-                        fivemServer.clientJoining(fivemClient);
-
                         deferrals.done();
                     }
                 }, 0);
@@ -113,10 +104,27 @@ on('playerDropped', (reason: string): void => {
     const playerName = GetPlayerName(String(global.source));
     const client = fivemServer.getClient(playerName);
     if (client != null) {
-        fivemServer.clientDropped(client);
+        fivemServer.dropClient(client);
     }
 
     console.log(`Player ${GetPlayerName(String(global.source))} dropped (Reason: ${reason}).`);
+});
+
+onNet('player-data:playerActivated', (): void => {
+    const player = global.source;
+    const steamIdentifier = getIdentifier(String(player), 'steam:');
+    const fivemIdentifier = getIdentifier(String(player), 'fivem:');
+    const ipIdentifier = getIdentifier(String(player), 'ip:');
+    const playerName = GetPlayerName(String(player));
+
+    const fivemClient: FiveMClient = new FiveMClient(
+        player,
+        playerName,
+        steamIdentifier.replace('steam:', ''),
+        fivemIdentifier.replace('fivem:', ''),
+        ipIdentifier.replace('ip:', '')
+    );
+    fivemServer.addClient(fivemClient);
 });
 
 function getIdentifier(playerSrc: string, identifierSrc: string): string {
