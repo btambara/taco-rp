@@ -1,3 +1,5 @@
+import fetch from 'node-fetch';
+
 class FiveMServer {
     maxClients: number;
     clients: FiveMClient[];
@@ -41,12 +43,14 @@ class FiveMServer {
 
 class FiveMClient {
     localId: number;
+    apiId: number;
     name: string;
     steam: string;
     fivem: string;
     ip: string;
 
     constructor(localId: number, name: string, steam: string, fivem: string, ip: string) {
+        this.apiId = -1;
         this.localId = localId;
         this.name = name;
         this.steam = steam;
@@ -86,11 +90,11 @@ on(
                     const ipIdentifier = getIdentifier(String(player), 'ip:');
 
                     if (!steamIdentifier) {
-                        setKickReason('Steam ID not found.');
+                        deferrals.done('Steam ID not found. Is Steam running?');
                     } else if (!fivemIdentifier) {
-                        setKickReason('FiveM ID not found.');
+                        deferrals.done('FiveM ID not found.');
                     } else if (!ipIdentifier) {
-                        setKickReason('IP not found.');
+                        deferrals.done('IP not found.');
                     } else {
                         deferrals.done();
                     }
@@ -103,8 +107,8 @@ on(
 on('playerDropped', (reason: string): void => {
     const playerName = GetPlayerName(String(global.source));
     const client = fivemServer.getClient(playerName);
-    if (client != null) {
-        fivemServer.dropClient(client);
+    if (client != null && client.apiId != -1) {
+        setLoginPlayer(client, client.apiId, false);
     }
 
     console.log(`Player ${GetPlayerName(String(global.source))} dropped (Reason: ${reason}).`);
@@ -117,15 +121,91 @@ onNet('player-data:playerActivated', (): void => {
     const ipIdentifier = getIdentifier(String(player), 'ip:');
     const playerName = GetPlayerName(String(player));
 
-    const fivemClient: FiveMClient = new FiveMClient(
+    const client: FiveMClient = new FiveMClient(
         player,
         playerName,
         steamIdentifier.replace('steam:', ''),
         fivemIdentifier.replace('fivem:', ''),
         ipIdentifier.replace('ip:', '')
     );
-    fivemServer.addClient(fivemClient);
+
+    checkInPlayer(client);
 });
+
+async function checkInPlayer(client: FiveMClient) {
+    await fetch(`http://taco-rp-api/api/v1/players/playername/${client.name}`).then(response => {
+        if (response.status == 404) {
+            createPlayer(client);
+            return;
+        } else if (response.ok) {
+            response.json().then(data => {
+                setLoginPlayer(client, data['id'], true);
+            });
+            return;
+        }
+
+        throw new Error(response.statusText);
+    });
+}
+
+async function setLoginPlayer(client: FiveMClient, id: number, isLogin: boolean) {
+    await fetch(`http://taco-rp-api/api/v1/players/${id}`, {
+        method: 'put',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
+        },
+
+        body: JSON.stringify({
+            player_name: client.name,
+            steam: client.steam,
+            fivem: client.fivem,
+            ip_address: client.ip,
+            is_logged_in: isLogin,
+            is_active: true
+        })
+    }).then(response => {
+        if (response.status == 404) {
+            throw new Error(response.statusText);
+        } else if (response.ok) {
+            client.apiId = id;
+
+            if (isLogin) {
+                fivemServer.addClient(client);
+            } else {
+                fivemServer.dropClient(client);
+            }
+        }
+    });
+}
+
+async function createPlayer(client: FiveMClient) {
+    await fetch('http://taco-rp-api/api/v1/players', {
+        method: 'post',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
+        },
+
+        body: JSON.stringify({
+            player_name: client.name,
+            steam: client.steam,
+            fivem: client.fivem,
+            ip_address: client.ip,
+            is_logged_in: false,
+            is_active: true
+        })
+    }).then(response => {
+        if (response.status == 404) {
+            throw new Error(response.statusText);
+        } else {
+            response.json().then(data => {
+                console.log(`Created player ${client.name}`);
+                setLoginPlayer(client, data['id'], true);
+            });
+        }
+    });
+}
 
 function getIdentifier(playerSrc: string, identifierSrc: string): string {
     for (let i = 0; i < GetNumPlayerIdentifiers(playerSrc); i++) {
