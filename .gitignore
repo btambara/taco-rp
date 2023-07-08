@@ -3,3 +3,5 @@ server.cfg
 .replxx_history
 /.vscode
 /taco-rp-api-env
+__pycache__
+.env

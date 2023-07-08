@@ -2,21 +2,30 @@ services:
   api:
     build:
       dockerfile: .docker/api/Dockerfile
+    container_name: taco-rp-api
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
     - "80:80"
     healthcheck:
-        test: ["CMD", "curl", "-f", "http://localhost:80"]
-        interval: 30s
-        timeout: 10s
-        retries: 5
+      test: ["CMD", "curl", "-f", "http://localhost:80/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     stdin_open: true
     tty: true
+    volumes:
+      - ./api/app:/api/app
 
   fxserver:
     build:
       dockerfile: .docker/fivem/Dockerfile
+    container_name: taco-rp-fivem
     depends_on:
       api:
+        condition: service_healthy
+      db:
         condition: service_healthy
     ports:
       - "30120:30120"
@@ -24,20 +33,30 @@ services:
       - "40120:40120"
     stdin_open: true
     tty: true
+    restart: always
     volumes:
       - server:/FXServer/server
       - ./resources:/FXServer/server-data/resources
       - ./server.cfg:/FXServer/server-data/server.cfg
 
   db:
-    image: mysql
-    # NOTE: use of "mysql_native_password" is not recommended: https://dev.mysql.com/doc/refman/8.0/en/upgrading-from-previous-series.html#upgrade-caching-sha2-password
-    # (this is just an example, not intended to be a production configuration)
-    command: --default-authentication-plugin=mysql_native_password
+    image: postgres:15.3
+    container_name: taco-rp-postgres
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: example
+      POSTGRES_DB: tacoRPDb
+    env_file:
+      - .env
     ports:
-      - "3306:3306"
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - db_volume:/var/lib/postgresql/data
+
 volumes:
   server:
+  db_volume:
