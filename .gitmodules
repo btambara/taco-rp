@@ -1,4 +1,3 @@
 [submodule "resources/[system]/tofu-core"]
 	path = resources/[system]/tofu-core
 	url = git@github.com:btambara/tofu-core.git
-git s
