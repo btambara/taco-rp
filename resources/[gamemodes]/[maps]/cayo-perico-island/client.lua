@@ -320,18 +320,18 @@ local requestedIpl = {
     "h4_islandx_placement_10",
     "h4_mph4_island_placement"
     }
-    
-    
-    
+
+
+
     CreateThread(function()
         for i = #requestedIpl, 1, -1 do
             RequestIpl(requestedIpl[i])
             requestedIpl[i] = nil
         end
-    
+
         requestedIpl = nil
     end)
-    
+
     CreateThread(function()
         while true do
             SetRadarAsExteriorThisFrame()
@@ -339,15 +339,15 @@ local requestedIpl = {
             Wait(0)
         end
     end)
-    
+
     CreateThread(function()
         SetDeepOceanScaler(0.0)
         local islandLoaded = false
         local islandCoords = vector3(4840.571, -5174.425, 2.0)
-    
+
         while true do
             local pCoords = GetEntityCoords(PlayerPedId())
-    
+
             if #(pCoords - islandCoords) < 2000.0 then
                 if not islandLoaded then
                     islandLoaded = true
@@ -369,11 +369,11 @@ local requestedIpl = {
                     SetAmbientZoneListStatePersistent('AZL_DLC_Hei4_Island_Disabled_Zones', 1, 0)
                 end
             end
-    
+
             Wait(5000)
         end
     end)
-    
+
     Citizen.CreateThread(function()
       SetDeepOceanScaler(0.0)
     end)
